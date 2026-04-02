@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة البريد الإلكتروني - لوحة التحكم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================
+           VARIABLES & RESET
+        ======================================== */
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card-solid: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: rgba(148, 163, 184, 0.1);
+            --glow: rgba(99, 102, 241, 0.4);
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================
+           ANIMATED BACKGROUND - PARTICLES
+        ======================================== */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatParticle linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        /* Gradient orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: rgba(99,102,241,0.15); top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: rgba(6,182,212,0.12); bottom: -50px; left: -50px; animation-delay: -3s; }
+        .orb-3 { width: 250px; height: 250px; background: rgba(245,158,11,0.08); top: 50%; left: 50%; animation-delay: -5s; }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* ========================================
+           CONTENT WRAPPER
+        ======================================== */
+        .content { position: relative; z-index: 1; }
+
+        /* ========================================
+           HEADER - 3D Animated
+        ======================================== */
+        .header {
+            padding: 50px 20px 40px;
+            text-align: center;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .header-3d-container {
+            display: inline-block;
+            animation: header3DFloat 6s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes header3DFloat {
+            0%, 100% { transform: rotateX(0deg) rotateY(0deg) translateY(0); }
+            25% { transform: rotateX(2deg) rotateY(-2deg) translateY(-8px); }
+            50% { transform: rotateX(0deg) rotateY(2deg) translateY(-4px); }
+            75% { transform: rotateX(-2deg) rotateY(0deg) translateY(-10px); }
+        }
+
+        .logo-3d {
+            width: 100px; height: 100px;
+            margin: 0 auto 20px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: logoSpin 10s ease-in-out infinite;
+        }
+
+        @keyframes logoSpin {
+            0%, 100% { transform: rotateY(0deg) rotateX(0deg); }
+            25% { transform: rotateY(15deg) rotateX(5deg); }
+            50% { transform: rotateY(0deg) rotateX(-5deg); }
+            75% { transform: rotateY(-15deg) rotateX(5deg); }
+        }
+
+        .logo-face {
+            position: absolute;
+            width: 100px; height: 100px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            backface-visibility: hidden;
+        }
+
+        .logo-front {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 20px 60px rgba(99,102,241,0.4);
+            transform: translateZ(10px);
+        }
+
+        .logo-back {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            transform: rotateY(180deg) translateZ(10px);
+        }
+
+        .logo-side {
+            width: 20px; height: 100px;
+            background: linear-gradient(180deg, var(--primary-dark), var(--primary));
+            position: absolute;
+            right: -10px; top: 0;
+            transform: rotateY(90deg);
+            border-radius: 0;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, var(--primary-light) 50%, var(--secondary) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes textShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            animation: fadeInUp 1s ease 0.3s both;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            animation: fadeInUp 1s ease 0.5s both;
+            backdrop-filter: blur(10px);
+        }
+
+        .pulse-dot {
+            width: 8px; height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+        }
+
+        /* ========================================
+           STATS CARDS - 3D Animated
+        ======================================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            padding: 0 30px;
+            max-width: 1400px;
+            margin: 0 auto 40px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            animation: cardEntrance 0.8s ease both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
+        .stat-card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(40px) rotateX(10deg); }
+            to { opacity: 1; transform: translateY(0) rotateX(0); }
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) rotateX(5deg) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            border-color: var(--primary);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .stat-card.card-total::before { background: linear-gradient(90deg, var(--primary), var(--primary-light)); }
+        .stat-card.card-emails::before { background: linear-gradient(90deg, var(--success), #34d399); }
+        .stat-card.card-domains::before { background: linear-gradient(90deg, var(--accent), #fbbf24); }
+        .stat-card.card-cost::before { background: linear-gradient(90deg, var(--secondary), #22d3ee); }
+        .stat-card.card-expiring::before { background: linear-gradient(90deg, var(--danger), #f87171); }
+
+        .stat-card .stat-icon {
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 14px;
+            position: relative;
+            animation: iconBounce 3s ease-in-out infinite;
+        }
+
+        .stat-card.card-total .stat-icon { background: rgba(99,102,241,0.15); }
+        .stat-card.card-emails .stat-icon { background: rgba(16,185,129,0.15); }
+        .stat-card.card-domains .stat-icon { background: rgba(245,158,11,0.15); }
+        .stat-card.card-cost .stat-icon { background: rgba(6,182,212,0.15); }
+        .stat-card.card-expiring .stat-icon { background: rgba(239,68,68,0.15); }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-card.card-total .stat-number { color: var(--primary-light); }
+        .stat-card.card-emails .stat-number { color: var(--success); }
+        .stat-card.card-domains .stat-number { color: var(--accent); }
+        .stat-card.card-cost .stat-number { color: var(--secondary); }
+        .stat-card.card-expiring .stat-number { color: var(--danger); }
+
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Animated counter ring */
+        .ring-animation {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 120px; height: 120px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            opacity: 0;
+            animation: ringExpand 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes ringExpand {
+            0% { width: 40px; height: 40px; opacity: 0.5; }
+            100% { width: 160px; height: 160px; opacity: 0; }
+        }
+
+        /* ========================================
+           CONTAINER
+        ======================================== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 40px;
+        }
+
+        /* ========================================
+           CONTROLS
+        ======================================== */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 380px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text);
+            outline: none;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            backdrop-filter: blur(20px);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(99,102,241,0.2);
+            transform: translateY(-2px);
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 18px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            transition: transform 0.3s;
+        }
+
+        .search-box input:focus ~ .search-icon,
+        .search-box:focus-within .search-icon {
+            transform: translateY(-50%) scale(1.2);
+        }
+
+        .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .filter-btn {
+            padding: 10px 20px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .filter-btn:hover::before { left: 100%; }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99,102,241,0.3);
+        }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::after { width: 300px; height: 300px; }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: 0 8px 25px rgba(99,102,241,0.3);
+        }
+        .btn-add:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 15px 40px rgba(99,102,241,0.4); }
+
+        .btn-export {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            color: white;
+            box-shadow: 0 8px 25px rgba(16,185,129,0.3);
+        }
+        .btn-export:hover { transform: translateY(-3px) scale(1.03); }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #475569, #64748b);
+            color: white;
+        }
+        .btn-reset:hover { transform: translateY(-3px) scale(1.03); }
+
+        .btn-excel {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            color: white;
+            box-shadow: 0 8px 25px rgba(16,185,129,0.3);
+        }
+        .btn-excel:hover { transform: translateY(-3px) scale(1.03); }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+            box-shadow: 0 8px 25px rgba(239,68,68,0.3);
+        }
+        .btn-pdf:hover { transform: translateY(-3px) scale(1.03); }
+
+        /* ========================================
+           TABLE
+        ======================================== */
+        .table-wrapper {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease 0.5s both;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .edit-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(99,102,241,0.05);
+            border-bottom: 1px solid var(--border);
+            animation: fadeIn 1s ease 1s both;
+        }
+
+        .edit-hint .hint-icon { animation: bounceHint 2s ease-in-out infinite; }
+
+        @keyframes bounceHint {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        .price-annual { font-weight: 700; font-size: 0.85rem; color: var(--accent); }
+
+        thead {
+            background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1));
+        }
+
+        th {
+            padding: 12px 8px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-align: right;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 8px;
+            font-size: 0.78rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            transition: background 0.3s;
+        }
+
+        tbody tr {
+            transition: all 0.3s;
+            animation: rowSlideIn 0.5s ease both;
+        }
+
+        tbody tr:hover {
+            background: rgba(99,102,241,0.05);
+        }
+
+        @keyframes rowSlideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Editable cells */
+        .editable {
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px dashed transparent;
+            transition: all 0.3s;
+            display: inline-block;
+            min-width: 40px;
+        }
+
+        .editable:hover {
+            background: rgba(99,102,241,0.1);
+            border-color: rgba(99,102,241,0.3);
+            transform: scale(1.02);
+        }
+
+        .inline-input {
+            padding: 6px 10px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background: var(--bg-card-solid);
+            color: var(--text);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            width: 100%;
+            min-width: 80px;
+            animation: inputGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes inputGlow {
+            0%, 100% { box-shadow: 0 0 5px var(--glow); }
+            50% { box-shadow: 0 0 20px var(--glow); }
+        }
+
+        .inline-select {
+            padding: 6px 8px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background: var(--bg-card-solid);
+            color: var(--text);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-active {
+            background: rgba(16,185,129,0.15);
+            color: #34d399;
+            border: 1px solid rgba(16,185,129,0.2);
+        }
+
+        .badge-expiring {
+            background: rgba(245,158,11,0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245,158,11,0.2);
+            animation: pulseWarning 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseWarning {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); }
+        }
+
+        .badge-expired {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            animation: pulseExpired 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseExpired {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+        }
+
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .type-email { background: rgba(99,102,241,0.15); color: var(--primary-light); border: 1px solid rgba(99,102,241,0.2); }
+        .type-domain { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+        .type-protection { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); }
+        .type-hosting { background: rgba(234,88,12,0.15); color: #fb923c; border: 1px solid rgba(234,88,12,0.2); }
+        .type-website { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+        .type-service { background: rgba(236,72,153,0.15); color: #f472b6; border: 1px solid rgba(236,72,153,0.2); }
+
+        /* Provider */
+        .provider-logo { display: flex; align-items: center; gap: 10px; }
+
+        .provider-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.7rem;
+            color: white;
+            flex-shrink: 0;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .provider-icon:hover {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        .price-tag {
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: linear-gradient(135deg, var(--secondary), #22d3ee);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .period-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+
+        /* Actions */
+        .actions { display: flex; gap: 6px; }
+
+        .btn-action {
+            width: 34px; height: 34px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .btn-edit { background: rgba(99,102,241,0.15); color: var(--primary-light); }
+        .btn-edit:hover { background: var(--primary); color: white; transform: translateY(-3px) rotate(10deg); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+
+        .btn-delete { background: rgba(239,68,68,0.15); color: #f87171; }
+        .btn-delete:hover { background: var(--danger); color: white; transform: translateY(-3px) rotate(-10deg); box-shadow: 0 8px 20px rgba(239,68,68,0.4); }
+
+        /* ========================================
+           3D ILLUSTRATION SECTION
+        ======================================== */
+        .illustration-section {
+            padding: 60px 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--text), var(--primary-light));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .section-title p { color: var(--text-muted); }
+
+        .summary-3d-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            perspective: 1000px;
+        }
+
+        .summary-3d-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+        }
+
+        .summary-3d-card:hover {
+            transform: translateY(-15px) rotateX(5deg) rotateY(-5deg);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.3), 0 0 40px rgba(99,102,241,0.1);
+            border-color: var(--primary);
+        }
+
+        .card-3d-icon {
+            width: 70px; height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: icon3DFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes icon3DFloat {
+            0%, 100% { transform: translateZ(0) rotateY(0); }
+            25% { transform: translateZ(15px) rotateY(10deg); }
+            50% { transform: translateZ(20px) rotateY(0); }
+            75% { transform: translateZ(15px) rotateY(-10deg); }
+        }
+
+        .card-3d-icon.icon-total { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05)); }
+        .card-3d-icon.icon-emails { background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05)); }
+        .card-3d-icon.icon-domains { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)); }
+        .card-3d-icon.icon-cost { background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(6,182,212,0.05)); }
+        .card-3d-icon.icon-expiring { background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.05)); }
+
+        .summary-3d-card h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; }
+
+        .summary-3d-card .card-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .summary-3d-card .card-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; }
+
+        /* Animated background shape in card */
+        .card-bg-shape {
+            position: absolute;
+            right: -30px; bottom: -30px;
+            width: 120px; height: 120px;
+            border-radius: 30px;
+            opacity: 0.08;
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+
+        .summary-3d-card:hover .card-bg-shape {
+            transform: rotate(90deg) scale(1.3);
+            opacity: 0.12;
+        }
+
+        /* ========================================
+           3D FLOATING OBJECTS
+        ======================================== */
+        .floating-objects {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            perspective: 1000px;
+        }
+
+        .float-obj {
+            position: absolute;
+            transform-style: preserve-3d;
+            animation: float3D 12s ease-in-out infinite;
+        }
+
+        .float-cube {
+            width: 30px; height: 30px;
+            transform-style: preserve-3d;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 30px; height: 30px;
+            border: 1px solid rgba(99,102,241,0.2);
+            background: rgba(99,102,241,0.03);
+            border-radius: 4px;
+        }
+
+        .cube-front { transform: translateZ(15px); }
+        .cube-back { transform: rotateY(180deg) translateZ(15px); }
+        .cube-right { transform: rotateY(90deg) translateZ(15px); }
+        .cube-left { transform: rotateY(-90deg) translateZ(15px); }
+        .cube-top { transform: rotateX(90deg) translateZ(15px); }
+        .cube-bottom { transform: rotateX(-90deg) translateZ(15px); }
+
+        @keyframes float3D {
+            0%, 100% { transform: translate3d(0, 0, 0) rotateX(0) rotateY(0); }
+            25% { transform: translate3d(20px, -30px, 20px) rotateX(90deg) rotateY(90deg); }
+            50% { transform: translate3d(-10px, -50px, -10px) rotateX(180deg) rotateY(180deg); }
+            75% { transform: translate3d(15px, -20px, 15px) rotateX(270deg) rotateY(270deg); }
+        }
+
+        .float-sphere {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(6,182,212,0.3), rgba(6,182,212,0.05));
+            border: 1px solid rgba(6,182,212,0.2);
+        }
+
+        .float-ring {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(245,158,11,0.15);
+        }
+
+        /* ========================================
+           MODAL
+        ======================================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 40px;
+            width: 90%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            animation: modalEnter 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes modalEnter {
+            from { transform: translateY(50px) rotateX(10deg) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) rotateX(0) scale(1); opacity: 1; }
+        }
+
+        .modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--text), var(--primary-light));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(99,102,241,0.2);
+        }
+
+        .form-group select option { background: var(--bg-card-solid); color: var(--text); }
+
+        .modal-actions { display: flex; gap: 12px; margin-top: 25px; }
+
+        .btn-save {
+            flex: 1; padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white; border: none; border-radius: 14px;
+            font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99,102,241,0.4); }
+
+        .btn-cancel-modal {
+            flex: 1; padding: 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text); border-radius: 14px;
+            font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .btn-cancel-modal:hover { background: rgba(255,255,255,0.1); }
+
+        /* ========================================
+           TOAST
+        ======================================== */
+        .toast {
+            position: fixed;
+            bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 16px 30px;
+            border-radius: 16px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success { background: rgba(16,185,129,0.9); color: white; }
+        .toast.error { background: rgba(239,68,68,0.9); color: white; }
+        .toast.info { background: rgba(99,102,241,0.9); color: white; }
+
+        /* ========================================
+           FOOTER
+        ======================================== */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-glow {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .footer-dev {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .footer-dev a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .footer-dev a:hover { text-decoration: underline; }
+
+        /* ========================================
+           TOP INFO BAR - Date/Time/Weather
+        ======================================== */
+        .top-info-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 10px 20px;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .top-info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .top-info-item .info-icon {
+            font-size: 1rem;
+        }
+
+        .top-info-item .info-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .weather-loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* ========================================
+           COMPANY LOGO
+        ======================================== */
+        .company-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .company-logo-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1a365d, #2563eb, #1e40af);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(37, 99, 235, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .company-logo-icon::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .company-logo-icon svg {
+            width: 45px;
+            height: 45px;
+        }
+
+        .company-logo-text {
+            text-align: right;
+        }
+
+        .company-logo-text .name-ar {
+            font-size: 1.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #93c5fd);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.3;
+        }
+
+        .company-logo-text .name-en {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ========================================
+           ANIMATIONS UTILITY
+        ======================================== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ========================================
+           EMPTY STATE
+        ======================================== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: emptyBounce 2s ease-in-out infinite;
+        }
+
+        @keyframes emptyBounce {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            25% { transform: translateY(-15px) rotate(5deg); }
+            75% { transform: translateY(-5px) rotate(-5deg); }
+        }
+
+        /* ========================================
+           SCROLLBAR
+        ======================================== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+
+        /* ========================================
+           PRINT
+        ======================================== */
+        @media print {
+            .bg-animation, .grid-bg, .orb, .floating-objects, .controls, .btn-group,
+            .actions, .modal-overlay, .toast, .edit-hint { display: none !important; }
+            body { background: white; color: #333; }
+            .stat-card, .table-wrapper, .summary-3d-card { background: white; border: 1px solid #ddd; box-shadow: none; }
+            .stat-number, .card-value { color: #333 !important; }
+        }
+
+        /* ========================================
+           RESPONSIVE
+        ======================================== */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.6rem; }
+            .stats-grid { padding: 0 15px; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 0 15px 30px; }
+            .controls { flex-direction: column; }
+            .search-box { max-width: 100%; }
+            .table-scroll { overflow-x: auto; }
+            table { min-width: 1000px; }
+            .modal { padding: 25px; width: 95%; }
+            .form-row { grid-template-columns: 1fr; }
+            .logo-3d { width: 70px; height: 70px; }
+            .logo-face { width: 70px; height: 70px; font-size: 1.8rem; }
+            .summary-3d-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+    <!-- ====== TOP INFO BAR ====== -->
+    <div class="top-info-bar">
+        <div class="top-info-item">
+            <span class="info-icon">📅</span>
+            <span id="liveDate" class="info-value">...</span>
+        </div>
+        <div class="top-info-item">
+            <span class="info-icon">⏰</span>
+            <span id="liveClock" class="info-value">...</span>
+        </div>
+        <div class="top-info-item">
+            <span class="info-icon" id="weatherIcon">⛅</span>
+            <span id="weatherText" class="info-value weather-loading">جاري تحميل الطقس...</span>
+        </div>
+    </div>
+
+    <!-- ====== ANIMATED BACKGROUND ====== -->
+    <div class="bg-animation" id="bgAnimation"></div>
+    <div class="grid-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- ====== 3D FLOATING OBJECTS ====== -->
+    <div class="floating-objects" id="floatingObjects"></div>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <div class="content">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-3d-container">
+                <!-- Company Logo -->
+                <div class="company-logo">
+                    <div class="company-logo-icon">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="10" y="35" width="80" height="45" rx="6" stroke="white" stroke-width="3" fill="none"/>
+                            <path d="M10 41 L50 65 L90 41" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="50" cy="22" r="10" stroke="#93c5fd" stroke-width="2.5" fill="none"/>
+                            <path d="M35 22 L50 15 L65 22" stroke="#fbbf24" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <line x1="50" y1="12" x2="50" y2="8" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="company-logo-text">
+                        <div class="name-ar">شركة الشرق الأوسط</div>
+                        <div class="name-en">MIDDLE EAST CO.</div>
+                    </div>
+                </div>
+
+                <div class="logo-3d">
+                    <div class="logo-face logo-front">📧</div>
+                    <div class="logo-face logo-back">🔒</div>
+                </div>
+                <h1>إدارة البريد الإلكتروني والنطاقات</h1>
+                <p>لوحة تحكم احترافية لمتابعة جميع الخدمات والاشتراكات</p>
+                <div class="header-badge">
+                    <span class="pulse-dot"></span>
+                    <span>النظام يعمل بشكل طبيعي</span>
+                    <span>•</span>
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card card-total">
+                <div class="ring-animation"></div>
+                <div class="stat-icon">📊</div>
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">إجمالي الخدمات</div>
+            </div>
+            <div class="stat-card card-emails">
+                <div class="ring-animation"></div>
+                <div class="stat-icon">📨</div>
+                <div class="stat-number" id="statEmails">0</div>
+                <div class="stat-label">حسابات البريد</div>
+            </div>
+            <div class="stat-card card-domains">
+                <div class="ring-animation"></div>
+                <div class="stat-icon">🌐</div>
+                <div class="stat-number" id="statDomains">0</div>
+                <div class="stat-label">النطاقات والحماية</div>
+            </div>
+            <div class="stat-card card-cost">
+                <div class="ring-animation"></div>
+                <div class="stat-icon">💰</div>
+                <div class="stat-number" id="statCost">$0</div>
+                <div class="stat-label">التكلفة الشهرية</div>
+            </div>
+            <div class="stat-card card-expiring">
+                <div class="ring-animation"></div>
+                <div class="stat-icon">📅</div>
+                <div class="stat-number" id="statYearly">$0</div>
+                <div class="stat-label">التكلفة السنوية</div>
+            </div>
+            <div class="stat-card card-expiring" style="--danger: #ef4444;">
+                <div class="ring-animation"></div>
+                <div class="stat-icon">⏰</div>
+                <div class="stat-number" id="statExpiring">0</div>
+                <div class="stat-label">قريبة الانتهاء</div>
+            </div>
+        </div>
+
+        <!-- Main Container -->
+        <div class="container">
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="بحث عن ايميل، نطاق، باقة...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">الكل</button>
+                    <button class="filter-btn" data-filter="email">📨 ايميل</button>
+                    <button class="filter-btn" data-filter="domain">🌐 نطاق</button>
+                    <button class="filter-btn" data-filter="protection">🛡️ حماية</button>
+                    <button class="filter-btn" data-filter="hosting">🖥️ استضافة</button>
+                    <button class="filter-btn" data-filter="website">🌍 مواقع</button>
+                    <button class="filter-btn" data-filter="service">💬 خدمات</button>
+                    <button class="filter-btn" data-filter="expiring">⏰ قريب الانتهاء</button>
+                    <button class="filter-btn" data-filter="expired">❌ منتهي</button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-add" onclick="openModal()">➕ إضافة جديد</button>
+                    <button class="btn btn-excel" onclick="exportExcel()">📊 Excel</button>
+                    <button class="btn btn-pdf" onclick="exportPDF()">📄 PDF</button>
+                    <button class="btn btn-reset" onclick="resetData()">🔄 إعادة تعيين</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <div class="edit-hint">
+                    <span class="hint-icon">💡</span>
+                    <span>انقر <strong style="color:var(--primary-light)">مرتين</strong> على أي خلية لتعديلها مباشرة | أو اضغط ✏️ للتعديل الكامل</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>النوع</th>
+                                <th>البريد / النطاق</th>
+                                <th>الباقة</th>
+                                <th>مزود الاستضافة</th>
+                                <th>الدومين</th>
+                                <th>السعر</th>
+                                <th>السنوي $</th>
+                                <th>العملة</th>
+                                <th>فترة التجديد</th>
+                                <th>تاريخ التجديد</th>
+                                <th>الحالة</th>
+                                <th>ملاحظات</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Summary Section -->
+        <div class="illustration-section animate-on-scroll">
+            <div class="section-title">
+                <h2>📈 ملخص الخدمات والتكاليف</h2>
+                <p>تحليل شامل لجميع الاشتراكات النشطة</p>
+            </div>
+            <div class="summary-3d-grid">
+                <div class="summary-3d-card">
+                    <div class="card-3d-icon icon-total">📊</div>
+                    <h3>إجمالي الخدمات المُسجلة</h3>
+                    <div class="card-value" id="sumTotal" style="color:var(--primary-light);">0</div>
+                    <div class="card-sub">خدمة مسجلة في النظام</div>
+                    <div class="card-bg-shape" style="background:var(--primary);"></div>
+                </div>
+                <div class="summary-3d-card">
+                    <div class="card-3d-icon icon-emails">📨</div>
+                    <h3>حسابات البريد الإلكتروني</h3>
+                    <div class="card-value" id="sumEmails" style="color:var(--success);">0</div>
+                    <div class="card-sub">حساب بريد إلكتروني نشط</div>
+                    <div class="card-bg-shape" style="background:var(--success);"></div>
+                </div>
+                <div class="summary-3d-card">
+                    <div class="card-3d-icon icon-domains">🌐</div>
+                    <h3>النطاقات وحماية النطاقات</h3>
+                    <div class="card-value" id="sumDomains" style="color:var(--accent);">0</div>
+                    <div class="card-sub">نطاق وخدمة حماية</div>
+                    <div class="card-bg-shape" style="background:var(--accent);"></div>
+                </div>
+                <div class="summary-3d-card">
+                    <div class="card-3d-icon icon-cost">�</div>
+                    <h3>التكلفة الشهرية الإجمالية</h3>
+                    <div class="card-value" id="sumMonthly" style="color:var(--secondary);">$0</div>
+                    <div class="card-sub">تكلفة جميع الاشتراكات شهرياً</div>
+                    <div class="card-bg-shape" style="background:var(--secondary);"></div>
+                </div>
+                <div class="summary-3d-card">
+                    <div class="card-3d-icon icon-cost">💰</div>
+                    <h3>التكلفة السنوية الإجمالية</h3>
+                    <div class="card-value" id="sumCost" style="color:var(--accent);">$0</div>
+                    <div class="card-sub">تكلفة جميع الاشتراكات سنوياً</div>
+                    <div class="card-bg-shape" style="background:var(--accent);"></div>
+                </div>
+                <div class="summary-3d-card">
+                    <div class="card-3d-icon icon-expiring">⏰</div>
+                    <h3>تنتهي خلال 60 يوم</h3>
+                    <div class="card-value" id="sumExpiring" style="color:var(--danger);">0</div>
+                    <div class="card-sub">تحتاج تجديد قريباً</div>
+                    <div class="card-bg-shape" style="background:var(--danger);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2026 <span class="footer-glow">شركة الشرق الأوسط — إدارة البريد الإلكتروني والنطاقات</span> — جميع الحقوق محفوظة</p>
+            <p class="footer-dev">تاريخ الإنشاء: 5 يناير 2026 • تطوير بواسطة <a href="https://github.com/BGHUSSEINSASH" target="_blank" rel="noopener">BGHUSSEINSASH</a></p>
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">➕ إضافة خدمة جديدة</h2>
+            <form id="emailForm" onsubmit="saveItem(event)">
+                <input type="hidden" id="editId" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نوع الخدمة</label>
+                        <select id="serviceType" required>
+                            <option value="email">📨 بريد إلكتروني</option>
+                            <option value="domain">🌐 نطاق (دومين)</option>
+                            <option value="protection">🛡️ حماية نطاق</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>مزود الاستضافة</label>
+                        <select id="provider" required>
+                            <option value="">-- اختر --</option>
+                            <option value="GoDaddy">GoDaddy</option>
+                            <option value="Google Workspace">Google Workspace</option>
+                            <option value="Microsoft 365">Microsoft 365</option>
+                            <option value="Namecheap">Namecheap</option>
+                            <option value="Hostinger">Hostinger</option>
+                            <option value="Bluehost">Bluehost</option>
+                            <option value="cPanel">cPanel</option>
+                            <option value="Zoho Mail">Zoho Mail</option>
+                            <option value="SiteGround">SiteGround</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="customProviderGroup" style="display:none;">
+                    <label>اسم مزود الاستضافة</label>
+                    <input type="text" id="customProvider" placeholder="أدخل اسم المزود">
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني / النطاق</label>
+                    <input type="text" id="emailAddress" placeholder="example@domain.com" required>
+                </div>
+                <div class="form-group">
+                    <label>الباقة / الخطة</label>
+                    <select id="package">
+                        <option value="">-- اختر --</option>
+                        <option value="Microsoft 365 Email Essentials">Microsoft 365 Email Essentials</option>
+                        <option value="Microsoft 365 Email Plus">Microsoft 365 Email Plus</option>
+                        <option value="Microsoft 365 Online Business Essentials">Microsoft 365 Online Business Essentials</option>
+                        <option value="Microsoft 365 Business Basic">Microsoft 365 Business Basic</option>
+                        <option value="Microsoft 365 Business Standard">Microsoft 365 Business Standard</option>
+                        <option value="Microsoft 365 Business Professional">Microsoft 365 Business Professional</option>
+                        <option value="Google Workspace Business Starter">Google Workspace Business Starter</option>
+                        <option value="Google Workspace Business Standard">Google Workspace Business Standard</option>
+                        <option value="Domain Renewal">Domain Renewal (تجديد نطاق)</option>
+                        <option value="Full Domain Protection">Full Domain Protection (حماية كاملة)</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group" id="customPackageGroup" style="display:none;">
+                    <label>اسم الباقة</label>
+                    <input type="text" id="customPackage" placeholder="أدخل اسم الباقة">
+                </div>
+                <div class="form-group">
+                    <label>الدومين (النطاق)</label>
+                    <input type="text" id="domain" placeholder="domain.com" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>السعر</label>
+                        <input type="number" id="price" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>العملة</label>
+                        <select id="currency" required>
+                            <option value="USD">USD دولار</option>
+                            <option value="SAR">SAR ريال</option>
+                            <option value="AED">AED درهم</option>
+                            <option value="IQD">IQD دينار</option>
+                            <option value="EUR">EUR يورو</option>
+                            <option value="GBP">GBP جنيه</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>فترة التجديد</label>
+                        <select id="renewalPeriod" required>
+                            <option value="شهري">شهري</option>
+                            <option value="ربع سنوي">ربع سنوي</option>
+                            <option value="نصف سنوي">نصف سنوي</option>
+                            <option value="سنوي" selected>سنوي</option>
+                            <option value="سنتين">سنتين</option>
+                            <option value="3 سنوات">3 سنوات</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>تاريخ التجديد</label>
+                        <input type="date" id="expiryDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات (اختياري)</label>
+                    <input type="text" id="notes" placeholder="أي ملاحظات...">
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-save">💾 حفظ</button>
+                    <button type="button" class="btn-cancel-modal" onclick="closeModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ============ DATA ============
+        var STORAGE_KEY = 'company_emails_v7';
+
+        // ============ SUPABASE CONFIG ============
+        var SUPABASE_URL = 'https://kcbgjgnhtnkgzdyqrncf.supabase.co';
+        var SUPABASE_ANON_KEY = ''; // سيتم إضافة المفتاح بعد تفعيل المشروع
+        var supabase = null;
+        var dbEnabled = false;
+
+        function initSupabase() {
+            if (SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient) {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    dbEnabled = true;
+                    console.log('✅ Supabase connected');
+                    syncFromDB();
+                } catch(e) {
+                    console.warn('⚠️ Supabase init failed:', e);
+                    dbEnabled = false;
+                }
+            } else {
+                console.info('ℹ️ Supabase not configured - using localStorage only');
+            }
+        }
+
+        function syncFromDB() {
+            if (!dbEnabled) return;
+            supabase.from('email_items').select('*').order('id', {ascending:true})
+                .then(function(res) {
+                    if (res.data && res.data.length > 0) {
+                        items = res.data.map(function(r) {
+                            return {
+                                id: r.id, type: r.type, email: r.email, package: r.package,
+                                provider: r.provider, domain: r.domain, price: parseFloat(r.price),
+                                currency: r.currency, renewalPeriod: r.renewal_period,
+                                expiryDate: r.expiry_date, notes: r.notes
+                            };
+                        });
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+                        render();
+                        showToast('✅ تم مزامنة البيانات من قاعدة البيانات', 'success');
+                    } else {
+                        pushToDB();
+                    }
+                })
+                .catch(function(e) { console.warn('DB sync failed:', e); });
+        }
+
+        function pushToDB() {
+            if (!dbEnabled) return;
+            var rows = items.map(function(e) {
+                return {
+                    id: e.id, type: e.type, email: e.email, package: e.package,
+                    provider: e.provider, domain: e.domain, price: e.price,
+                    currency: e.currency, renewal_period: e.renewalPeriod,
+                    expiry_date: e.expiryDate, notes: e.notes
+                };
+            });
+            supabase.from('email_items').upsert(rows, {onConflict:'id'})
+                .then(function(res) {
+                    if (res.error) console.warn('DB push error:', res.error);
+                })
+                .catch(function(e) { console.warn('DB push failed:', e); });
+        }
+
+        function deleteFromDB(id) {
+            if (!dbEnabled) return;
+            supabase.from('email_items').delete().eq('id', id)
+                .catch(function(e) { console.warn('DB delete failed:', e); });
+        }
+
+        // Monthly pricing map for auto-fill
+        var packageMonthlyPrices = {
+            'Microsoft 365 Email Essentials': 8.99,
+            'Microsoft 365 Email Plus': 9.99,
+            'Microsoft 365 Online Business Essentials': 14.99,
+            'Microsoft 365 Business Professional': 23.99
+        };
+
+        function getAutoPrice(pkg) { return packageMonthlyPrices[pkg] || null; }
+
+        var sampleData = [
+            // === النطاقات ===
+            { id:1, type:'domain', email:'mideastls.com', package:'Domain Renewal', provider:'GoDaddy', domain:'mideastls.com', price:35.98, currency:'USD', renewalPeriod:'سنوي', expiryDate:'2026-08-27', notes:'تجديد نطاق - يتجدد' },
+            // === حماية النطاقات ===
+            { id:2, type:'protection', email:'arabdeveloperices.com', package:'Full Domain Protection', provider:'GoDaddy', domain:'arabdeveloperices.com', price:22.99, currency:'USD', renewalPeriod:'سنوي', expiryDate:'2028-09-11', notes:'حماية نطاق كاملة' },
+            { id:3, type:'protection', email:'qualitytowers.com', package:'Full Domain Protection', provider:'GoDaddy', domain:'qualitytowers.com', price:22.99, currency:'USD', renewalPeriod:'سنوي', expiryDate:'2028-10-13', notes:'حماية نطاق كاملة' },
+            // === استضافة ===
+            { id:4, type:'hosting', email:'64n.4d8.mytemp.website', package:'Web Hosting Ultimate', provider:'GoDaddy', domain:'mytemp.website', price:0, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-05', notes:'سيتم الإلغاء' },
+            // === ايميلات نشطة - تتجدد Apr 27, 2026 ===
+            { id:5, type:'email', email:'ahmed.alobaidy@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-27', notes:'يتجدد' },
+            { id:6, type:'email', email:'sajad.aliris@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-27', notes:'يتجدد' },
+            { id:7, type:'email', email:'finance.manager@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-27', notes:'يتجدد' },
+            { id:8, type:'email', email:'pih.legal@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-27', notes:'يتجدد' },
+            { id:9, type:'email', email:'finance.officer@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-27', notes:'يتجدد' },
+            // === ايميلات - سيتم الإلغاء ===
+            { id:10, type:'email', email:'حساب جديد (غير مخصص)', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-12', notes:'سيتم الإلغاء - حساب غير مخصص' },
+            { id:11, type:'email', email:'tax.dept@mideastls.com', package:'Microsoft 365 Online Business Essentials', provider:'GoDaddy', domain:'mideastls.com', price:14.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-24', notes:'سيتم الإلغاء' },
+            { id:12, type:'email', email:'paralegal.company.reg@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-30', notes:'سيتم الإلغاء' },
+            { id:13, type:'email', email:'paralegal.entities@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-30', notes:'سيتم الإلغاء' },
+            { id:14, type:'email', email:'paralegal.tax@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-04-30', notes:'سيتم الإلغاء' },
+            // === ايميلات نشطة - تتجدد Mar 2027 ===
+            { id:15, type:'email', email:'con.mgr@mideastls.com', package:'Microsoft 365 Email Plus', provider:'GoDaddy', domain:'mideastls.com', price:9.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-13', notes:'يتجدد' },
+            { id:16, type:'email', email:'office.manager@mideastls.com', package:'Microsoft 365 Online Business Essentials', provider:'GoDaddy', domain:'mideastls.com', price:14.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:17, type:'email', email:'management.ops@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:18, type:'email', email:'socialsecurity.dept@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:19, type:'email', email:'it@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:20, type:'email', email:'hussein.issa@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:21, type:'email', email:'sajad.aliris@arabdeveloperices.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'arabdeveloperices.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:22, type:'email', email:'saif.khaled@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:23, type:'email', email:'pih.paralegal@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            { id:24, type:'email', email:'حساب جديد (غير مخصص)', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'حساب جديد - يتجدد' },
+            { id:25, type:'email', email:'legal.coordinator@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2027-03-27', notes:'يتجدد' },
+            // === ايميلات منتهية (27/3/2026) ===
+            { id:26, type:'email', email:'executive.assistant@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:27, type:'email', email:'info@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:28, type:'email', email:'sajad.aliris@qualitytowers.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'qualitytowers.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:29, type:'email', email:'noora.luay@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:30, type:'email', email:'middle@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:31, type:'email', email:'hisham.nizal@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:32, type:'email', email:'hassan.altamimi@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:33, type:'email', email:'noor.mohammed@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:34, type:'email', email:'hussein.ghalib@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:35, type:'email', email:'paralegal.archive@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:36, type:'email', email:'noor.khaled@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:37, type:'email', email:'amna.mutaz@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:38, type:'email', email:'coo@mideastls.com', package:'Microsoft 365 Business Professional', provider:'GoDaddy', domain:'mideastls.com', price:23.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:39, type:'email', email:'ali.alfatlawy@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:40, type:'email', email:'paralegal.ss@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:41, type:'email', email:'moataz.tahseen@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:42, type:'email', email:'thulfiqar.hussam@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:43, type:'email', email:'sa.legal@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:44, type:'email', email:'ag.legal@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            { id:45, type:'email', email:'mustafa.naser@mideastls.com', package:'Microsoft 365 Email Essentials', provider:'GoDaddy', domain:'mideastls.com', price:8.99, currency:'USD', renewalPeriod:'شهري', expiryDate:'2026-03-27', notes:'منتهي' },
+            // === مواقع وتسويق (مجاني) ===
+            { id:46, type:'website', email:'mideastls.com', package:'Websites + Marketing Free', provider:'GoDaddy', domain:'mideastls.com', price:0, currency:'USD', renewalPeriod:'مجاني', expiryDate:'2099-12-31', notes:'موقع + تسويق مجاني' },
+            { id:47, type:'website', email:'حساب جديد', package:'Websites + Marketing Intl Free', provider:'GoDaddy', domain:'-', price:0, currency:'USD', renewalPeriod:'مجاني', expiryDate:'2099-12-31', notes:'موقع + تسويق دولي مجاني' },
+            { id:48, type:'website', email:'site-2t9h51l9g.godaddysites.com', package:'Websites + Marketing Intl Free', provider:'GoDaddy', domain:'godaddysites.com', price:0, currency:'USD', renewalPeriod:'مجاني', expiryDate:'2099-12-31', notes:'موقع + تسويق دولي مجاني' },
+            { id:49, type:'website', email:'arabdeveloperices.com', package:'Websites + Marketing Free', provider:'GoDaddy', domain:'arabdeveloperices.com', price:0, currency:'USD', renewalPeriod:'مجاني', expiryDate:'2099-12-31', notes:'موقع + تسويق مجاني' },
+            { id:50, type:'service', email:'arabdeveloperices.com', package:'Conversations Free', provider:'GoDaddy', domain:'arabdeveloperices.com', price:0, currency:'USD', renewalPeriod:'مجاني', expiryDate:'2099-12-31', notes:'محادثات مجانية' },
+            { id:51, type:'website', email:'qualitytowers.com', package:'Websites + Marketing Free', provider:'GoDaddy', domain:'qualitytowers.com', price:0, currency:'USD', renewalPeriod:'مجاني', expiryDate:'2099-12-31', notes:'موقع + تسويق مجاني' }
+        ];
+
+        // ============ STATE ============
+        var items = [];
+        var currentFilter = 'all';
+        var editingCell = null;
+
+        // ============ INIT ============
+        function init() {
+            var stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                items = JSON.parse(stored);
+            } else {
+                items = JSON.parse(JSON.stringify(sampleData));
+                save();
+            }
+
+            setCurrentDate();
+            updateLiveClock();
+            loadWeather();
+            createParticles();
+            createFloatingObjects();
+            render();
+            setupEvents();
+            setupScrollAnimations();
+            animateCounters();
+            initSupabase();
+        }
+
+        function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); pushToDB(); }
+
+        // ============ DATE ============
+        function setCurrentDate() {
+            var d = new Date();
+            var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+            document.getElementById('currentDate').textContent = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        // ============ LIVE CLOCK & DATE ============
+        function updateLiveClock() {
+            var now = new Date();
+            var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+            var days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+            var dateEl = document.getElementById('liveDate');
+            var clockEl = document.getElementById('liveClock');
+            if (dateEl) dateEl.textContent = days[now.getDay()] + '، ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+            if (clockEl) clockEl.textContent = now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: true});
+        }
+        setInterval(updateLiveClock, 1000);
+
+        // ============ WEATHER ============
+        function loadWeather() {
+            var weatherIcons = {'Clear':'☀️','Sunny':'☀️','Partly cloudy':'⛅','Cloudy':'☁️','Overcast':'☁️','Mist':'🌫️','Fog':'🌫️','Rain':'🌧️','Light rain':'🌦️','Heavy rain':'🌧️','Thunderstorm':'⛈️','Snow':'🌨️','Dust':'🌪️','Sandstorm':'🌪️','Haze':'🌫️'};
+            fetch('https://wttr.in/Baghdad?format=j1')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var current = data.current_condition[0];
+                    var temp = current.temp_C;
+                    var desc = current.weatherDesc[0].value;
+                    var icon = weatherIcons[desc] || '🌡️';
+                    var iconEl = document.getElementById('weatherIcon');
+                    var textEl = document.getElementById('weatherText');
+                    if (iconEl) iconEl.textContent = icon;
+                    if (textEl) {
+                        textEl.textContent = 'بغداد: ' + temp + '°C — ' + desc;
+                        textEl.classList.remove('weather-loading');
+                    }
+                })
+                .catch(function() {
+                    var textEl = document.getElementById('weatherText');
+                    if (textEl) {
+                        textEl.textContent = 'الطقس غير متاح';
+                        textEl.classList.remove('weather-loading');
+                    }
+                });
+        }
+
+        // ============ PARTICLES ============
+        function createParticles() {
+            var container = document.getElementById('bgAnimation');
+            var colors = ['var(--primary)', 'var(--secondary)', 'var(--accent)', '#a855f7', '#ec4899'];
+            for (var i = 0; i < 40; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                var size = Math.random() * 4 + 2;
+                p.style.cssText =
+                    'width:' + size + 'px;height:' + size + 'px;' +
+                    'left:' + (Math.random() * 100) + '%;' +
+                    'background:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
+                    'animation-duration:' + (Math.random() * 15 + 10) + 's;' +
+                    'animation-delay:' + (Math.random() * 10) + 's;';
+                container.appendChild(p);
+            }
+        }
+
+        // ============ 3D FLOATING OBJECTS ============
+        function createFloatingObjects() {
+            var container = document.getElementById('floatingObjects');
+
+            // Cubes
+            for (var i = 0; i < 6; i++) {
+                var obj = document.createElement('div');
+                obj.className = 'float-obj';
+                obj.style.cssText =
+                    'top:' + (Math.random() * 90) + '%;' +
+                    'left:' + (Math.random() * 90) + '%;' +
+                    'animation-duration:' + (12 + Math.random() * 10) + 's;' +
+                    'animation-delay:' + (Math.random() * -10) + 's;';
+
+                var cube = document.createElement('div');
+                cube.className = 'float-cube';
+                var faces = ['front','back','right','left','top','bottom'];
+                for (var j = 0; j < faces.length; j++) {
+                    var face = document.createElement('div');
+                    face.className = 'cube-face cube-' + faces[j];
+                    cube.appendChild(face);
+                }
+                obj.appendChild(cube);
+                container.appendChild(obj);
+            }
+
+            // Spheres
+            for (var s = 0; s < 8; s++) {
+                var sphere = document.createElement('div');
+                sphere.className = 'float-obj';
+                sphere.style.cssText =
+                    'top:' + (Math.random() * 90) + '%;' +
+                    'left:' + (Math.random() * 90) + '%;' +
+                    'animation-duration:' + (15 + Math.random() * 10) + 's;' +
+                    'animation-delay:' + (Math.random() * -8) + 's;';
+                var ball = document.createElement('div');
+                ball.className = 'float-sphere';
+                sphere.appendChild(ball);
+                container.appendChild(sphere);
+            }
+
+            // Rings
+            for (var r = 0; r < 5; r++) {
+                var ring = document.createElement('div');
+                ring.className = 'float-obj';
+                ring.style.cssText =
+                    'top:' + (Math.random() * 90) + '%;' +
+                    'left:' + (Math.random() * 90) + '%;' +
+                    'animation-duration:' + (18 + Math.random() * 8) + 's;' +
+                    'animation-delay:' + (Math.random() * -5) + 's;';
+                var ringEl = document.createElement('div');
+                ringEl.className = 'float-ring';
+                ring.appendChild(ringEl);
+                container.appendChild(ring);
+            }
+        }
+
+        // ============ SCROLL ANIMATIONS ============
+        function setupScrollAnimations() {
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.animate-on-scroll').forEach(function(el) { observer.observe(el); });
+        }
+
+        // ============ ANIMATE COUNTERS ============
+        function animateCounters() {
+            // Will be called after render with actual values
+        }
+
+        function animateNumber(el, target, duration) {
+            if (!duration) duration = 1000;
+            var start = 0;
+            var startTime = null;
+            var isPrice = String(target).indexOf('$') === 0;
+            var num = isPrice ? parseFloat(String(target).replace('$', '')) : parseInt(target);
+            if (isNaN(num)) { el.textContent = target; return; }
+
+            function step(ts) {
+                if (!startTime) startTime = ts;
+                var progress = Math.min((ts - startTime) / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                var val = Math.floor(eased * num);
+                el.textContent = isPrice ? ('$' + val) : val;
+                if (progress < 1) requestAnimationFrame(step);
+                else el.textContent = target;
+            }
+            requestAnimationFrame(step);
+        }
+
+        // ============ UTILITIES ============
+        var providerColors = {
+            'GoDaddy':'#1bdbdb','Google Workspace':'#4285f4','Microsoft 365':'#0078d4',
+            'Namecheap':'#de5833','Hostinger':'#673de6','Bluehost':'#2e3192',
+            'cPanel':'#ff6c2c','Zoho Mail':'#c8202b','SiteGround':'#68bc71'
+        };
+
+        function getColor(p) { return providerColors[p] || '#6366f1'; }
+        function getInitials(p) { return p.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase(); }
+
+        function getTypeInfo(t) {
+            if (t === 'email') return {text:'📨 ايميل', cls:'type-email'};
+            if (t === 'domain') return {text:'🌐 نطاق', cls:'type-domain'};
+            if (t === 'protection') return {text:'🛡️ حماية', cls:'type-protection'};
+            if (t === 'hosting') return {text:'🖥️ استضافة', cls:'type-hosting'};
+            if (t === 'website') return {text:'🌍 موقع', cls:'type-website'};
+            if (t === 'service') return {text:'💬 خدمة', cls:'type-service'};
+            return {text:t||'ايميل', cls:'type-email'};
+        }
+
+        function getStatus(date) {
+            var today = new Date();
+            var exp = new Date(date);
+            var diff = Math.ceil((exp - today) / 86400000);
+            if (diff < 0) return {text:'❌ منتهي ('+Math.abs(diff)+' يوم)', cls:'badge-expired', key:'expired'};
+            if (diff <= 60) return {text:'⏰ ' + diff + ' يوم', cls:'badge-expiring', key:'expiring'};
+            return {text:'✅ نشط', cls:'badge-active', key:'active'};
+        }
+
+        function esc(s) {
+            if (!s) return '';
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function toAnnual(price, period) {
+            switch (period) {
+                case 'شهري': return price * 12;
+                case 'ربع سنوي': return price * 4;
+                case 'نصف سنوي': return price * 2;
+                case 'سنوي': return price;
+                case 'سنتين': return price / 2;
+                case '3 سنوات': return price / 3;
+                case 'مجاني': return 0;
+                default: return price;
+            }
+        }
+
+        // ============ RENDER ============
+        function render() {
+            var tbody = document.getElementById('tableBody');
+            var search = document.getElementById('searchInput').value.toLowerCase();
+
+            var filtered = items.filter(function(e) {
+                var st = getStatus(e.expiryDate);
+                var mf = currentFilter === 'all' ||
+                    (currentFilter === 'email' && e.type === 'email') ||
+                    (currentFilter === 'domain' && e.type === 'domain') ||
+                    (currentFilter === 'protection' && e.type === 'protection') ||
+                    (currentFilter === 'hosting' && e.type === 'hosting') ||
+                    (currentFilter === 'website' && e.type === 'website') ||
+                    (currentFilter === 'service' && e.type === 'service') ||
+                    (currentFilter === 'expiring' && st.key === 'expiring') ||
+                    (currentFilter === 'expired' && st.key === 'expired');
+                var ms = !search ||
+                    e.email.toLowerCase().indexOf(search) !== -1 ||
+                    e.provider.toLowerCase().indexOf(search) !== -1 ||
+                    e.domain.toLowerCase().indexOf(search) !== -1 ||
+                    (e.package && e.package.toLowerCase().indexOf(search) !== -1) ||
+                    (e.notes && e.notes.toLowerCase().indexOf(search) !== -1);
+                return mf && ms;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">📭</div><h3>لا توجد نتائج</h3><p>جرب تغيير البحث أو الفلتر</p></div></td></tr>';
+            } else {
+                var html = '';
+                for (var i = 0; i < filtered.length; i++) {
+                    var e = filtered[i];
+                    var st = getStatus(e.expiryDate);
+                    var ti = getTypeInfo(e.type);
+                    var c = getColor(e.provider);
+                    var init = getInitials(e.provider);
+                    var priceHtml = e.price > 0 ? ('$' + e.price.toFixed(2)) : '<span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;">أدخل السعر</span>';
+                    var annualPrice = toAnnual(e.price, e.renewalPeriod);
+                    var annualHtml = annualPrice > 0 ? ('$' + annualPrice.toFixed(2)) : '-';
+
+                    html += '<tr style="animation-delay:' + (i * 0.05) + 's">' +
+                        '<td style="color:var(--text-muted)">' + (i+1) + '</td>' +
+                        '<td><span class="type-badge ' + ti.cls + '">' + ti.text + '</span></td>' +
+                        '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'email\',this)"><strong>' + esc(e.email) + '</strong></span></td>' +
+                        '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'package\',this)" style="font-size:0.78rem">' + esc(e.package||'-') + '</span></td>' +
+                        '<td><div class="provider-logo"><div class="provider-icon" style="background:' + c + '">' + init + '</div><span class="editable" ondblclick="window._edit(' + e.id + ',\'provider\',this)">' + esc(e.provider) + '</span></div></td>' +
+                        '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'domain\',this)">' + esc(e.domain) + '</span></td>' +
+                        '<td><span class="price-tag editable" ondblclick="window._edit(' + e.id + ',\'price\',this)">' + priceHtml + '</span></td>' +
+                        '<td><span class="price-annual">' + annualHtml + '</span></td>' +
+                        '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'currency\',this)">' + esc(e.currency) + '</span></td>' +
+                        '<td><span class="period-tag editable" ondblclick="window._edit(' + e.id + ',\'renewalPeriod\',this)">' + esc(e.renewalPeriod) + '</span></td>' +
+                        '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'expiryDate\',this)">' + e.expiryDate + '</span></td>' +
+                        '<td><span class="badge ' + st.cls + '">' + st.text + '</span></td>' +
+                        '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'notes\',this)" style="font-size:0.78rem;color:var(--text-muted)">' + esc(e.notes||'—') + '</span></td>' +
+                        '<td><div class="actions">' +
+                            '<button class="btn-action btn-edit" onclick="window._openModal(' + e.id + ')" title="تعديل كامل">✏️</button>' +
+                            '<button class="btn-action btn-delete" onclick="window._delete(' + e.id + ')" title="حذف">🗑️</button>' +
+                        '</div></td></tr>';
+                }
+                tbody.innerHTML = html;
+            }
+
+            updateStats();
+        }
+
+        // ============ STATS ============
+        function updateStats() {
+            var total = items.length;
+            var emailCount = items.filter(function(e){return e.type==='email';}).length;
+            var domainCount = items.filter(function(e){return e.type==='domain'||e.type==='protection';}).length;
+            var expCount = items.filter(function(e){return getStatus(e.expiryDate).key==='expiring';}).length;
+            var yearly = 0;
+            items.forEach(function(e){ yearly += toAnnual(e.price, e.renewalPeriod); });
+            var monthly = yearly / 12;
+
+            animateNumber(document.getElementById('statTotal'), total);
+            animateNumber(document.getElementById('statEmails'), emailCount);
+            animateNumber(document.getElementById('statDomains'), domainCount);
+            animateNumber(document.getElementById('statCost'), '$' + monthly.toFixed(0));
+            animateNumber(document.getElementById('statYearly'), '$' + yearly.toFixed(0));
+            animateNumber(document.getElementById('statExpiring'), expCount);
+
+            document.getElementById('sumTotal').textContent = total;
+            document.getElementById('sumEmails').textContent = emailCount;
+            document.getElementById('sumDomains').textContent = domainCount;
+            document.getElementById('sumMonthly').textContent = '$' + monthly.toFixed(2);
+            document.getElementById('sumCost').textContent = '$' + yearly.toFixed(2);
+            document.getElementById('sumExpiring').textContent = expCount;
+        }
+
+        // ============ INLINE EDIT ============
+        window._edit = function(id, field, el) {
+            if (editingCell) return;
+            editingCell = true;
+
+            var item = items.find(function(e){return e.id===id;});
+            if (!item) { editingCell = null; return; }
+
+            var val = item[field];
+            var input;
+
+            if (field === 'currency') {
+                input = document.createElement('select');
+                input.className = 'inline-select';
+                ['USD','SAR','AED','IQD','EUR','GBP'].forEach(function(c) {
+                    var o = document.createElement('option');
+                    o.value = c; o.textContent = c;
+                    if (c === val) o.selected = true;
+                    input.appendChild(o);
+                });
+            } else if (field === 'renewalPeriod') {
+                input = document.createElement('select');
+                input.className = 'inline-select';
+                ['شهري','ربع سنوي','نصف سنوي','سنوي','سنتين','3 سنوات'].forEach(function(p) {
+                    var o = document.createElement('option');
+                    o.value = p; o.textContent = p;
+                    if (p === val) o.selected = true;
+                    input.appendChild(o);
+                });
+            } else if (field === 'expiryDate') {
+                input = document.createElement('input');
+                input.type = 'date';
+                input.className = 'inline-input';
+                input.value = val;
+            } else if (field === 'price') {
+                input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'inline-input';
+                input.step = '0.01'; input.min = '0';
+                input.value = val;
+                input.style.width = '100px';
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'inline-input';
+                input.value = val || '';
+            }
+
+            var origHTML = el.innerHTML;
+            el.innerHTML = '';
+            el.appendChild(input);
+            input.focus();
+            if (input.select) input.select();
+
+            function doSave() {
+                var nv = input.value;
+                if (field === 'price') nv = parseFloat(nv) || 0;
+                if (nv !== val) {
+                    item[field] = nv;
+                    save();
+                    showToast('تم التعديل بنجاح ✅', 'success');
+                }
+                editingCell = null;
+                render();
+            }
+
+            function doCancel() {
+                el.innerHTML = origHTML;
+                editingCell = null;
+            }
+
+            input.addEventListener('blur', doSave);
+            input.addEventListener('keydown', function(ev) {
+                if (ev.key === 'Enter') { ev.preventDefault(); doSave(); }
+                if (ev.key === 'Escape') { ev.preventDefault(); input.removeEventListener('blur', doSave); doCancel(); }
+            });
+        };
+
+        // ============ MODAL ============
+        window._openModal = function(id) { openModal(id); };
+        window.openModal = openModal;
+
+        function openModal(id) {
+            var form = document.getElementById('emailForm');
+            form.reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('customProviderGroup').style.display = 'none';
+            document.getElementById('customPackageGroup').style.display = 'none';
+            document.getElementById('modalTitle').textContent = '➕ إضافة خدمة جديدة';
+
+            if (id) {
+                var item = items.find(function(e){return e.id===id;});
+                if (item) {
+                    document.getElementById('editId').value = item.id;
+                    document.getElementById('serviceType').value = item.type || 'email';
+                    document.getElementById('emailAddress').value = item.email;
+                    document.getElementById('domain').value = item.domain;
+                    document.getElementById('price').value = item.price;
+                    document.getElementById('currency').value = item.currency;
+                    document.getElementById('renewalPeriod').value = item.renewalPeriod;
+                    document.getElementById('expiryDate').value = item.expiryDate;
+                    document.getElementById('notes').value = item.notes || '';
+                    document.getElementById('modalTitle').textContent = '✏️ تعديل بيانات الخدمة';
+
+                    var ps = document.getElementById('provider');
+                    var pe = false;
+                    for (var i=0; i<ps.options.length; i++) {
+                        if (ps.options[i].value === item.provider && ps.options[i].value !== 'other' && ps.options[i].value !== '') { pe = true; break; }
+                    }
+                    if (pe) ps.value = item.provider;
+                    else { ps.value = 'other'; document.getElementById('customProvider').value = item.provider; document.getElementById('customProviderGroup').style.display = 'block'; }
+
+                    var pks = document.getElementById('package');
+                    var pke = false;
+                    for (var j=0; j<pks.options.length; j++) {
+                        if (pks.options[j].value === item.package && pks.options[j].value !== 'other' && pks.options[j].value !== '') { pke = true; break; }
+                    }
+                    if (pke) pks.value = item.package;
+                    else if (item.package) { pks.value = 'other'; document.getElementById('customPackage').value = item.package; document.getElementById('customPackageGroup').style.display = 'block'; }
+                }
+            }
+
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        };
+
+        // ============ SAVE ============
+        window.saveItem = function(ev) {
+            ev.preventDefault();
+
+            var editId = document.getElementById('editId').value;
+            var provider = document.getElementById('provider').value;
+            if (provider === 'other') {
+                provider = document.getElementById('customProvider').value.trim();
+                if (!provider) { alert('الرجاء إدخال اسم مزود الاستضافة'); return; }
+            }
+
+            var pkg = document.getElementById('package').value;
+            if (pkg === 'other') {
+                pkg = document.getElementById('customPackage').value.trim();
+                if (!pkg) { alert('الرجاء إدخال اسم الباقة'); return; }
+            }
+
+            var data = {
+                type: document.getElementById('serviceType').value,
+                email: document.getElementById('emailAddress').value.trim(),
+                package: pkg,
+                provider: provider,
+                domain: document.getElementById('domain').value.trim(),
+                price: parseFloat(document.getElementById('price').value) || 0,
+                currency: document.getElementById('currency').value,
+                renewalPeriod: document.getElementById('renewalPeriod').value,
+                expiryDate: document.getElementById('expiryDate').value,
+                notes: document.getElementById('notes').value.trim()
+            };
+
+            if (editId) {
+                var idx = items.findIndex(function(e){return e.id===parseInt(editId);});
+                if (idx !== -1) { data.id = items[idx].id; items[idx] = data; }
+                showToast('تم التحديث بنجاح ✅', 'success');
+            } else {
+                var maxId = items.length > 0 ? Math.max.apply(null, items.map(function(e){return e.id;})) : 0;
+                data.id = maxId + 1;
+                items.push(data);
+                showToast('تمت الإضافة بنجاح ✅', 'success');
+            }
+
+            save();
+            closeModal();
+            render();
+        };
+
+        // ============ DELETE ============
+        window._delete = function(id) {
+            var item = items.find(function(e){return e.id===id;});
+            if (item && confirm('هل أنت متأكد من حذف "' + item.email + '"؟')) {
+                deleteFromDB(id);
+                items = items.filter(function(e){return e.id!==id;});
+                save();
+                render();
+                showToast('تم الحذف 🗑️', 'error');
+            }
+        };
+
+        // ============ RESET ============
+        window.resetData = function() {
+            if (confirm('هل أنت متأكد من إعادة تعيين البيانات؟\nسيتم فقدان جميع التعديلات!')) {
+                items = JSON.parse(JSON.stringify(sampleData));
+                save();
+                render();
+                showToast('تم إعادة التعيين 🔄', 'info');
+            }
+        };
+
+        // ============ FILTER HELPER ============
+        function getFilteredItems() {
+            return items.filter(function(e) {
+                var st = getStatus(e.expiryDate);
+                return currentFilter === 'all' ||
+                    (currentFilter === 'email' && e.type === 'email') ||
+                    (currentFilter === 'domain' && e.type === 'domain') ||
+                    (currentFilter === 'protection' && e.type === 'protection') ||
+                    (currentFilter === 'hosting' && e.type === 'hosting') ||
+                    (currentFilter === 'website' && e.type === 'website') ||
+                    (currentFilter === 'service' && e.type === 'service') ||
+                    (currentFilter === 'expiring' && st.key === 'expiring') ||
+                    (currentFilter === 'expired' && st.key === 'expired');
+            });
+        }
+
+        var filterLabels = {
+            'all': 'الكل', 'email': '📨 ايميل', 'domain': '🌐 نطاق', 'protection': '🛡️ حماية',
+            'hosting': '🖥️ استضافة', 'website': '🌍 مواقع', 'service': '💬 خدمات',
+            'expiring': '⏰ قريب الانتهاء', 'expired': '❌ منتهي'
+        };
+
+        function getTypeText(t) {
+            if (t === 'email') return 'بريد';
+            if (t === 'domain') return 'نطاق';
+            if (t === 'protection') return 'حماية';
+            if (t === 'hosting') return 'استضافة';
+            if (t === 'website') return 'موقع';
+            if (t === 'service') return 'خدمة';
+            return t || 'بريد';
+        }
+
+        function getTypeEmoji(t) {
+            if (t === 'email') return '📨 بريد';
+            if (t === 'domain') return '🌐 نطاق';
+            if (t === 'protection') return '🛡️ حماية';
+            if (t === 'hosting') return '🖥️ استضافة';
+            if (t === 'website') return '🌍 موقع';
+            if (t === 'service') return '💬 خدمة';
+            return t || '📨 بريد';
+        }
+
+        // ============ EXPORT EXCEL ============
+        window.exportExcel = function() {
+            var data = getFilteredItems();
+            var filterName = filterLabels[currentFilter] || 'الكل';
+            var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            html += '<head><meta charset="utf-8"><style>td,th{border:1px solid #ccc;padding:8px;text-align:right;font-family:Arial;font-size:12px;}th{background:#4472C4;color:white;font-weight:bold;}</style></head>';
+            html += '<body><table>';
+            html += '<tr><th colspan="12" style="text-align:center;background:#6366f1;font-size:14px;">تصفية: ' + filterName + ' (' + data.length + ' عنصر)</th></tr>';
+            html += '<tr><th>النوع</th><th>البريد/النطاق</th><th>الباقة</th><th>المزود</th><th>الدومين</th><th>السعر/الفترة</th><th>الفترة</th><th>السنوي $</th><th>العملة</th><th>تاريخ التجديد</th><th>الحالة</th><th>ملاحظات</th></tr>';
+            data.forEach(function(e) {
+                var annual = toAnnual(e.price, e.renewalPeriod);
+                var st = getStatus(e.expiryDate);
+                var statusText = st.key === 'active' ? 'نشط' : (st.key === 'expiring' ? 'قريب الانتهاء' : 'منتهي');
+                html += '<tr><td>'+getTypeText(e.type)+'</td><td>'+esc(e.email)+'</td><td>'+esc(e.package||'')+'</td><td>'+esc(e.provider)+'</td><td>'+esc(e.domain)+'</td><td>'+e.price.toFixed(2)+'</td><td>'+esc(e.renewalPeriod)+'</td><td>'+annual.toFixed(2)+'</td><td>'+esc(e.currency)+'</td><td>'+e.expiryDate+'</td><td>'+statusText+'</td><td>'+esc(e.notes||'')+'</td></tr>';
+            });
+            var totalAnnual = 0;
+            data.forEach(function(e){ totalAnnual += toAnnual(e.price, e.renewalPeriod); });
+            html += '<tr><th colspan="7" style="text-align:center;background:#f59e0b;">الإجمالي السنوي</th><th style="background:#f59e0b;">'+totalAnnual.toFixed(2)+'</th><th style="background:#f59e0b;">USD</th><th colspan="3" style="background:#f59e0b;"></th></tr>';
+            html += '</table></body></html>';
+            var blob = new Blob(['\uFEFF'+html], {type:'application/vnd.ms-excel;charset=utf-8;'});
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'email_accounts_' + currentFilter + '_' + new Date().toISOString().slice(0,10) + '.xls';
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('تم التصدير Excel (' + filterName + ') بنجاح 📊', 'success');
+        };
+
+        // ============ EXPORT PDF ============
+        window.exportPDF = function() {
+            var w = window.open('', '_blank');
+            if (!w) { showToast('الرجاء السماح بالنوافذ المنبثقة ❌', 'error'); return; }
+            var data = getFilteredItems();
+            var filterName = filterLabels[currentFilter] || 'الكل';
+            var totalAnnual = 0;
+            var totalMonthly = 0;
+            data.forEach(function(e){ totalAnnual += toAnnual(e.price, e.renewalPeriod); });
+            totalMonthly = totalAnnual / 12;
+            var emailCount = data.filter(function(e){return e.type==='email';}).length;
+            var domainCount = data.filter(function(e){return e.type==='domain'||e.type==='protection';}).length;
+
+            var ph = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير البريد الإلكتروني</title>';
+            ph += '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">';
+            ph += '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Cairo,Arial,sans-serif;padding:30px;background:#fff;color:#333;direction:rtl;}';
+            ph += 'h1{text-align:center;color:#4f46e5;margin-bottom:5px;font-size:1.5rem;}';
+            ph += '.sub{text-align:center;color:#666;margin-bottom:20px;font-size:0.85rem;}';
+            ph += '.filter-label{text-align:center;color:#4f46e5;font-weight:700;margin-bottom:15px;font-size:1rem;background:#eef2ff;padding:8px 20px;border-radius:10px;display:inline-block;}';
+            ph += '.filter-wrap{text-align:center;margin-bottom:15px;}';
+            ph += '.stats{display:flex;justify-content:center;gap:15px;margin-bottom:20px;flex-wrap:wrap;}';
+            ph += '.sb{background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:12px 18px;text-align:center;min-width:110px;}';
+            ph += '.sb .n{font-size:1.3rem;font-weight:900;color:#4f46e5;}.sb .l{font-size:0.72rem;color:#64748b;margin-top:2px;}';
+            ph += 'table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.72rem;}';
+            ph += 'th{background:#4f46e5;color:white;padding:8px 6px;text-align:right;font-weight:700;font-size:0.72rem;}';
+            ph += 'td{padding:7px 6px;border-bottom:1px solid #e2e8f0;text-align:right;}';
+            ph += 'tr:nth-child(even){background:#f8fafc;}';
+            ph += '.total-row td{background:#fef3c7;font-weight:900;border-top:2px solid #f59e0b;}';
+            ph += '.ft{text-align:center;margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:0.65rem;}';
+            ph += '@media print{body{padding:15px;}.no-print{display:none!important;}}</style></head><body>';
+
+            ph += '<h1>📧 تقرير البريد الإلكتروني والنطاقات</h1>';
+            ph += '<p class="sub">تاريخ التقرير: ' + new Date().toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}) + '</p>';
+            ph += '<div class="filter-wrap"><span class="filter-label">التصفية: ' + filterName + ' (' + data.length + ' عنصر)</span></div>';
+
+            ph += '<div class="stats">';
+            ph += '<div class="sb"><div class="n">' + data.length + '</div><div class="l">إجمالي الخدمات</div></div>';
+            ph += '<div class="sb"><div class="n">' + emailCount + '</div><div class="l">حسابات البريد</div></div>';
+            ph += '<div class="sb"><div class="n">' + domainCount + '</div><div class="l">النطاقات والحماية</div></div>';
+            ph += '<div class="sb"><div class="n" style="color:#06b6d4;">$' + totalMonthly.toFixed(2) + '</div><div class="l">التكلفة الشهرية</div></div>';
+            ph += '<div class="sb"><div class="n" style="color:#f59e0b;">$' + totalAnnual.toFixed(2) + '</div><div class="l">التكلفة السنوية</div></div>';
+            ph += '</div>';
+
+            ph += '<table><thead><tr><th>#</th><th>النوع</th><th>البريد / النطاق</th><th>الباقة</th><th>المزود</th><th>السعر</th><th>الفترة</th><th>السنوي $</th><th>العملة</th><th>التجديد</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody>';
+
+            data.forEach(function(e, i) {
+                var st = getStatus(e.expiryDate);
+                var annual = toAnnual(e.price, e.renewalPeriod);
+                var statusText = st.key === 'active' ? '✅ نشط' : (st.key === 'expiring' ? '⏰ قريب' : '❌ منتهي');
+                ph += '<tr><td>'+(i+1)+'</td><td>'+getTypeEmoji(e.type)+'</td><td>'+esc(e.email)+'</td><td>'+esc(e.package||'-')+'</td><td>'+esc(e.provider)+'</td><td>$'+e.price.toFixed(2)+'</td><td>'+esc(e.renewalPeriod)+'</td><td>$'+annual.toFixed(2)+'</td><td>'+esc(e.currency)+'</td><td>'+e.expiryDate+'</td><td>'+statusText+'</td><td>'+esc(e.notes||'-')+'</td></tr>';
+            });
+
+            ph += '<tr class="total-row"><td colspan="7" style="text-align:center;font-size:0.85rem;">💰 الإجمالي السنوي</td><td style="font-size:0.85rem;">$'+totalAnnual.toFixed(2)+'</td><td>USD</td><td colspan="3"></td></tr>';
+            ph += '</tbody></table>';
+
+            ph += '<div style="text-align:center;margin-top:15px;" class="no-print"><button onclick="window.print()" style="padding:12px 30px;background:#4f46e5;color:white;border:none;border-radius:10px;font-family:Cairo;font-size:1rem;font-weight:700;cursor:pointer;">🖨️ طباعة / حفظ PDF</button></div>';
+            ph += '<div class="ft">تم إنشاء التقرير تلقائياً من نظام إدارة البريد الإلكتروني — ' + new Date().toLocaleDateString('ar-EG') + '</div>';
+            ph += '</body></html>';
+
+            w.document.write(ph);
+            w.document.close();
+            showToast('تم فتح نافذة التقرير PDF (' + filterName + ') 📄', 'info');
+        };
+
+        // ============ TOAST ============
+        function showToast(msg, type) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + (type || 'info');
+            setTimeout(function(){ t.className = 'toast'; }, 3000);
+        }
+
+        // ============ EVENTS ============
+        function setupEvents() {
+            document.getElementById('searchInput').addEventListener('input', render);
+
+            document.querySelectorAll('.filter-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    render();
+                });
+            });
+
+            document.getElementById('provider').addEventListener('change', function() {
+                document.getElementById('customProviderGroup').style.display = this.value === 'other' ? 'block' : 'none';
+            });
+            document.getElementById('package').addEventListener('change', function() {
+                document.getElementById('customPackageGroup').style.display = this.value === 'other' ? 'block' : 'none';
+                var autoPrice = getAutoPrice(this.value);
+                if (autoPrice !== null) {
+                    document.getElementById('price').value = autoPrice;
+                    document.getElementById('renewalPeriod').value = 'شهري';
+                }
+            });
+
+            document.getElementById('modalOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            document.getElementById('emailAddress').addEventListener('input', function() {
+                var v = this.value;
+                if (v.indexOf('@') !== -1) {
+                    var d = v.split('@')[1];
+                    if (d) document.getElementById('domain').value = d;
+                }
+            });
+
+            // 3D card tilt on mouse move
+            document.querySelectorAll('.stat-card, .summary-3d-card').forEach(function(card) {
+                card.addEventListener('mousemove', function(e) {
+                    var rect = card.getBoundingClientRect();
+                    var x = e.clientX - rect.left;
+                    var y = e.clientY - rect.top;
+                    var centerX = rect.width / 2;
+                    var centerY = rect.height / 2;
+                    var rotateX = (y - centerY) / centerY * -8;
+                    var rotateY = (x - centerX) / centerX * 8;
+                    card.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateY(-5px) scale(1.02)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    card.style.transform = '';
+                });
+            });
+        }
+
+        // ============ START ============
+        init();
+    })();
+    </script>
+</body>
+</html>
+
