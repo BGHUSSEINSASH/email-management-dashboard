@@ -2043,12 +2043,13 @@
 
         // ============ STATS ============
         function updateStats() {
-            var total = items.length;
-            var emailCount = items.filter(function(e){return e.type==='email';}).length;
-            var domainCount = items.filter(function(e){return e.type==='domain'||e.type==='protection';}).length;
-            var expCount = items.filter(function(e){return getStatus(e.expiryDate).key==='expiring';}).length;
+            var data = getFilteredItems();
+            var total = data.length;
+            var emailCount = data.filter(function(e){return e.type==='email';}).length;
+            var domainCount = data.filter(function(e){return e.type==='domain'||e.type==='protection';}).length;
+            var expCount = data.filter(function(e){return getStatus(e.expiryDate).key==='expiring';}).length;
             var yearly = 0;
-            items.forEach(function(e){ yearly += toAnnual(e.price, e.renewalPeriod); });
+            data.forEach(function(e){ yearly += toAnnual(e.price, e.renewalPeriod); });
             var monthly = yearly / 12;
 
             animateNumber(document.getElementById('statTotal'), total);
