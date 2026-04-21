@@ -632,6 +632,24 @@
             box-shadow: none;
         }
 
+        .btn-selection-excel {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            color: white;
+            border: none;
+        }
+
+        .btn-selection-pdf {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+            border: none;
+        }
+
+        .btn-selection-print {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            border: none;
+        }
+
         .btn-selection:hover {
             transform: translateY(-2px);
             border-color: rgba(34,211,238,0.35);
@@ -1511,6 +1529,9 @@
                 </div>
                 <div class="selection-actions">
                     <span class="selection-note">يمكنك تحديد أي صف لحساب التكلفة مباشرة.</span>
+                    <button class="btn btn-selection btn-selection-excel" type="button" onclick="exportSelectedExcel()">📊 Excel حسب التحديد</button>
+                    <button class="btn btn-selection btn-selection-pdf" type="button" onclick="exportSelectedPDF()">📄 PDF حسب التحديد</button>
+                    <button class="btn btn-selection btn-selection-print" type="button" onclick="printSelected()">🖨️ طباعة حسب التحديد</button>
                     <button class="btn btn-selection" type="button" onclick="clearSelection()">مسح التحديد</button>
                 </div>
             </div>
@@ -2502,6 +2523,27 @@
             });
         }
 
+        function getExportDataset(mode) {
+            var selected = getSelectedItems();
+            var useSelected = mode === 'selected' || selected.length > 0;
+
+            if (useSelected) {
+                return {
+                    data: selected,
+                    label: 'المحدد',
+                    suffix: 'selected',
+                    isSelection: true
+                };
+            }
+
+            return {
+                data: getFilteredItems(),
+                label: filterLabels[currentFilter] || 'الكل',
+                suffix: currentFilter,
+                isSelection: false
+            };
+        }
+
         var filterLabels = {
             'all': 'الكل', 'email': '📨 ايميل', 'domain': '🌐 نطاق', 'protection': '🛡️ حماية',
             'hosting': '🖥️ استضافة', 'website': '🌍 مواقع', 'service': '💬 خدمات',
@@ -2529,9 +2571,10 @@
         }
 
         // ============ EXPORT EXCEL ============
-        window.exportExcel = function() {
-            var data = getFilteredItems();
-            var filterName = filterLabels[currentFilter] || 'الكل';
+        window.exportExcel = function(mode) {
+            var dataset = getExportDataset(mode);
+            var data = dataset.data;
+            var filterName = dataset.label;
             var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
             html += '<head><meta charset="utf-8"><style>td,th{border:1px solid #ccc;padding:8px;text-align:right;font-family:Arial;font-size:12px;}th{background:#4472C4;color:white;font-weight:bold;}</style></head>';
             html += '<body><table>';
@@ -2550,18 +2593,28 @@
             var blob = new Blob(['\uFEFF'+html], {type:'application/vnd.ms-excel;charset=utf-8;'});
             var link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'email_accounts_' + currentFilter + '_' + new Date().toISOString().slice(0,10) + '.xls';
+            link.download = 'email_accounts_' + dataset.suffix + '_' + new Date().toISOString().slice(0,10) + '.xls';
             link.click();
             URL.revokeObjectURL(link.href);
             showToast('تم التصدير Excel (' + filterName + ') بنجاح 📊', 'success');
         };
 
+        window.exportSelectedExcel = function() {
+            var selected = getSelectedItems();
+            if (!selected.length) {
+                showToast('اختر عنصرًا واحدًا على الأقل للتصدير حسب التحديد', 'error');
+                return;
+            }
+            window.exportExcel('selected');
+        };
+
         // ============ EXPORT PDF ============
-        window.exportPDF = function() {
+        window.exportPDF = function(mode, printNow) {
             var w = window.open('', '_blank');
             if (!w) { showToast('الرجاء السماح بالنوافذ المنبثقة ❌', 'error'); return; }
-            var data = getFilteredItems();
-            var filterName = filterLabels[currentFilter] || 'الكل';
+            var dataset = getExportDataset(mode);
+            var data = dataset.data;
+            var filterName = dataset.label;
             var totalAnnual = 0;
             var totalMonthly = 0;
             data.forEach(function(e){ totalAnnual += toAnnual(e.price, e.renewalPeriod); });
@@ -2613,11 +2666,32 @@
 
             ph += '<div style="text-align:center;margin-top:15px;" class="no-print"><button onclick="window.print()" style="padding:12px 30px;background:#4f46e5;color:white;border:none;border-radius:10px;font-family:Cairo;font-size:1rem;font-weight:700;cursor:pointer;">🖨️ طباعة / حفظ PDF</button></div>';
             ph += '<div class="ft">تم إنشاء التقرير تلقائياً من نظام إدارة البريد الإلكتروني — ' + new Date().toLocaleDateString('ar-EG') + '</div>';
+            if (printNow) {
+                ph += '<script>window.onload=function(){window.print();};<\/script>';
+            }
             ph += '</body></html>';
 
             w.document.write(ph);
             w.document.close();
-            showToast('تم فتح نافذة التقرير PDF (' + filterName + ') 📄', 'info');
+            showToast((printNow ? 'تم فتح الطباعة' : 'تم فتح نافذة التقرير PDF') + ' (' + filterName + ') 📄', 'info');
+        };
+
+        window.exportSelectedPDF = function() {
+            var selected = getSelectedItems();
+            if (!selected.length) {
+                showToast('اختر عنصرًا واحدًا على الأقل لتصدير PDF حسب التحديد', 'error');
+                return;
+            }
+            window.exportPDF('selected');
+        };
+
+        window.printSelected = function() {
+            var selected = getSelectedItems();
+            if (!selected.length) {
+                showToast('اختر عنصرًا واحدًا على الأقل للطباعة حسب التحديد', 'error');
+                return;
+            }
+            window.exportPDF('selected', true);
         };
 
         // ============ TOAST ============
