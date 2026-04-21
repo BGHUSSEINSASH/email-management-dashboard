@@ -540,6 +540,103 @@
 
         .price-annual { font-weight: 700; font-size: 0.85rem; color: var(--accent); }
 
+        .select-cell {
+            width: 44px;
+            text-align: center;
+        }
+
+        .row-checkbox,
+        .header-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: #22d3ee;
+            cursor: pointer;
+        }
+
+        .selection-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            padding: 16px 18px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(99,102,241,0.14));
+            border: 1px solid rgba(34,211,238,0.18);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .selection-summary.hidden {
+            display: none;
+        }
+
+        .selection-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .selection-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.35);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+
+        .selection-metric {
+            min-width: 180px;
+        }
+
+        .selection-metric span {
+            display: block;
+        }
+
+        .selection-metric .label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .selection-metric .value {
+            font-size: 0.96rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .selection-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .selection-note {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .btn-selection {
+            padding: 10px 16px;
+            background: rgba(15,23,42,0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        .btn-selection:hover {
+            transform: translateY(-2px);
+            border-color: rgba(34,211,238,0.35);
+        }
+
         thead {
             background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.1));
         }
@@ -571,6 +668,11 @@
 
         tbody tr:hover {
             background: rgba(99,102,241,0.05);
+        }
+
+        tbody tr.row-selected {
+            background: rgba(99,102,241,0.12);
+            box-shadow: inset 3px 0 0 var(--secondary);
         }
 
         @keyframes rowSlideIn {
@@ -1245,6 +1347,9 @@
             .container { padding: 0 15px 30px; }
             .controls { flex-direction: column; }
             .search-box { max-width: 100%; }
+            .selection-summary { padding: 14px; }
+            .selection-info, .selection-actions { width: 100%; }
+            .selection-metric { min-width: 100%; }
             .table-scroll { overflow-x: auto; }
             table { min-width: 1000px; }
             .modal { padding: 25px; width: 95%; }
@@ -1391,6 +1496,25 @@
                 </div>
             </div>
 
+            <div class="selection-summary hidden" id="selectionSummary">
+                <div class="selection-info">
+                    <div class="selection-badge">✅ <span id="selectedCount">0</span> عنصر محدد</div>
+                    <div class="selection-badge">📨 <span id="selectedEmailCount">0</span> بريد محدد</div>
+                    <div class="selection-metric">
+                        <span class="label">التكلفة الشهرية حسب التحديد</span>
+                        <span class="value" id="selectedMonthly">-</span>
+                    </div>
+                    <div class="selection-metric">
+                        <span class="label">التكلفة السنوية حسب التحديد</span>
+                        <span class="value" id="selectedYearly">-</span>
+                    </div>
+                </div>
+                <div class="selection-actions">
+                    <span class="selection-note">يمكنك تحديد أي صف لحساب التكلفة مباشرة.</span>
+                    <button class="btn btn-selection" type="button" onclick="clearSelection()">مسح التحديد</button>
+                </div>
+            </div>
+
             <!-- Table -->
             <div class="table-wrapper">
                 <div class="edit-hint">
@@ -1401,6 +1525,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th class="select-cell"><input type="checkbox" id="selectAllCheckbox" class="header-checkbox" title="تحديد الكل الظاهر"></th>
                                 <th>#</th>
                                 <th>النوع</th>
                                 <th>البريد / النطاق</th>
@@ -1452,7 +1577,7 @@
                     <div class="card-bg-shape" style="background:var(--accent);"></div>
                 </div>
                 <div class="summary-3d-card">
-                    <div class="card-3d-icon icon-cost">�</div>
+                    <div class="card-3d-icon icon-cost">💵</div>
                     <h3>التكلفة الشهرية الإجمالية</h3>
                     <div class="card-value" id="sumMonthly" style="color:var(--secondary);">$0</div>
                     <div class="card-sub">تكلفة جميع الاشتراكات شهرياً</div>
@@ -1747,6 +1872,7 @@
         var items = [];
         var currentFilter = 'all';
         var editingCell = null;
+        var selectedIds = [];
 
         // ============ INIT ============
         function init() {
@@ -1977,33 +2103,110 @@
             }
         }
 
+        function normalizeAmount(value) {
+            return Math.round(value * 100) / 100;
+        }
+
+        function toMonthly(price, period) {
+            return normalizeAmount(toAnnual(price, period) / 12);
+        }
+
+        function getSelectedItems() {
+            return items.filter(function(e) {
+                return selectedIds.indexOf(e.id) !== -1;
+            });
+        }
+
+        function formatCurrencyTotals(data, amountGetter) {
+            if (!data.length) return '0';
+
+            var totals = {};
+            data.forEach(function(entry) {
+                var currency = entry.currency || 'USD';
+                totals[currency] = normalizeAmount((totals[currency] || 0) + amountGetter(entry));
+            });
+
+            return Object.keys(totals).sort().map(function(currency) {
+                return currency + ' ' + totals[currency].toFixed(2);
+            }).join(' • ');
+        }
+
+        function syncSelectionWithItems() {
+            selectedIds = selectedIds.filter(function(id) {
+                return items.some(function(entry) { return entry.id === id; });
+            });
+        }
+
+        function updateSelectionSummary(visibleItems) {
+            syncSelectionWithItems();
+
+            var summary = document.getElementById('selectionSummary');
+            var selected = getSelectedItems();
+            var selectedEmails = selected.filter(function(entry) { return entry.type === 'email'; }).length;
+            var monthlyTotals = formatCurrencyTotals(selected, function(entry) {
+                return toMonthly(entry.price, entry.renewalPeriod);
+            });
+            var yearlyTotals = formatCurrencyTotals(selected, function(entry) {
+                return toAnnual(entry.price, entry.renewalPeriod);
+            });
+            var hasSelected = selected.length > 0;
+            var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            var visibleSelectedCount = visibleItems.filter(function(entry) {
+                return selectedIds.indexOf(entry.id) !== -1;
+            }).length;
+            var allVisibleSelected = visibleItems.length > 0 && visibleSelectedCount === visibleItems.length;
+
+            summary.classList.toggle('hidden', !hasSelected);
+            document.getElementById('selectedCount').textContent = selected.length;
+            document.getElementById('selectedEmailCount').textContent = selectedEmails;
+            document.getElementById('selectedMonthly').textContent = hasSelected ? monthlyTotals : '-';
+            document.getElementById('selectedYearly').textContent = hasSelected ? yearlyTotals : '-';
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allVisibleSelected;
+                selectAllCheckbox.indeterminate = visibleSelectedCount > 0 && !allVisibleSelected;
+            }
+        }
+
+        window.toggleItemSelection = function(id, checked) {
+            if (checked) {
+                if (selectedIds.indexOf(id) === -1) selectedIds.push(id);
+            } else {
+                selectedIds = selectedIds.filter(function(selectedId) { return selectedId !== id; });
+            }
+            render();
+        };
+
+        window.clearSelection = function() {
+            if (!selectedIds.length) return;
+            selectedIds = [];
+            render();
+        };
+
+        window.toggleSelectAllVisible = function(checked) {
+            var visibleItems = getVisibleItems();
+            var visibleIds = visibleItems.map(function(entry) { return entry.id; });
+
+            if (checked) {
+                visibleIds.forEach(function(id) {
+                    if (selectedIds.indexOf(id) === -1) selectedIds.push(id);
+                });
+            } else {
+                selectedIds = selectedIds.filter(function(id) {
+                    return visibleIds.indexOf(id) === -1;
+                });
+            }
+
+            render();
+        };
+
         // ============ RENDER ============
         function render() {
             var tbody = document.getElementById('tableBody');
-            var search = document.getElementById('searchInput').value.toLowerCase();
-
-            var filtered = items.filter(function(e) {
-                var st = getStatus(e.expiryDate);
-                var mf = currentFilter === 'all' ||
-                    (currentFilter === 'email' && e.type === 'email') ||
-                    (currentFilter === 'domain' && e.type === 'domain') ||
-                    (currentFilter === 'protection' && e.type === 'protection') ||
-                    (currentFilter === 'hosting' && e.type === 'hosting') ||
-                    (currentFilter === 'website' && e.type === 'website') ||
-                    (currentFilter === 'service' && e.type === 'service') ||
-                    (currentFilter === 'expiring' && st.key === 'expiring') ||
-                    (currentFilter === 'expired' && st.key === 'expired');
-                var ms = !search ||
-                    e.email.toLowerCase().indexOf(search) !== -1 ||
-                    e.provider.toLowerCase().indexOf(search) !== -1 ||
-                    e.domain.toLowerCase().indexOf(search) !== -1 ||
-                    (e.package && e.package.toLowerCase().indexOf(search) !== -1) ||
-                    (e.notes && e.notes.toLowerCase().indexOf(search) !== -1);
-                return mf && ms;
-            });
+            var filtered = getVisibleItems();
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">📭</div><h3>لا توجد نتائج</h3><p>جرب تغيير البحث أو الفلتر</p></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15"><div class="empty-state"><div class="empty-icon">📭</div><h3>لا توجد نتائج</h3><p>جرب تغيير البحث أو الفلتر</p></div></td></tr>';
             } else {
                 var html = '';
                 for (var i = 0; i < filtered.length; i++) {
@@ -2012,11 +2215,13 @@
                     var ti = getTypeInfo(e.type);
                     var c = getColor(e.provider);
                     var init = getInitials(e.provider);
+                    var isSelected = selectedIds.indexOf(e.id) !== -1;
                     var priceHtml = e.price > 0 ? ('$' + e.price.toFixed(2)) : '<span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;">أدخل السعر</span>';
                     var annualPrice = toAnnual(e.price, e.renewalPeriod);
                     var annualHtml = annualPrice > 0 ? ('$' + annualPrice.toFixed(2)) : '-';
 
-                    html += '<tr style="animation-delay:' + (i * 0.05) + 's">' +
+                    html += '<tr class="' + (isSelected ? 'row-selected' : '') + '" style="animation-delay:' + (i * 0.05) + 's">' +
+                        '<td class="select-cell"><input type="checkbox" class="row-checkbox" ' + (isSelected ? 'checked ' : '') + 'onclick="window.toggleItemSelection(' + e.id + ', this.checked)"></td>' +
                         '<td style="color:var(--text-muted)">' + (i+1) + '</td>' +
                         '<td><span class="type-badge ' + ti.cls + '">' + ti.text + '</span></td>' +
                         '<td><span class="editable" ondblclick="window._edit(' + e.id + ',\'email\',this)"><strong>' + esc(e.email) + '</strong></span></td>' +
@@ -2039,6 +2244,7 @@
             }
 
             updateStats();
+            updateSelectionSummary(filtered);
         }
 
         // ============ STATS ============
@@ -2248,6 +2454,7 @@
             if (item && confirm('هل أنت متأكد من حذف "' + item.email + '"؟')) {
                 deleteFromDB(id);
                 items = items.filter(function(e){return e.id!==id;});
+                selectedIds = selectedIds.filter(function(selectedId) { return selectedId !== id; });
                 save();
                 render();
                 showToast('تم الحذف 🗑️', 'error');
@@ -2258,6 +2465,7 @@
         window.resetData = function() {
             if (confirm('هل أنت متأكد من إعادة تعيين البيانات؟\nسيتم فقدان جميع التعديلات!')) {
                 items = JSON.parse(JSON.stringify(sampleData));
+                selectedIds = [];
                 save();
                 render();
                 showToast('تم إعادة التعيين 🔄', 'info');
@@ -2277,6 +2485,20 @@
                     (currentFilter === 'service' && e.type === 'service') ||
                     (currentFilter === 'expiring' && st.key === 'expiring') ||
                     (currentFilter === 'expired' && st.key === 'expired');
+            });
+        }
+
+        function getVisibleItems() {
+            var searchInput = document.getElementById('searchInput');
+            var search = searchInput ? searchInput.value.toLowerCase() : '';
+
+            return getFilteredItems().filter(function(e) {
+                return !search ||
+                    e.email.toLowerCase().indexOf(search) !== -1 ||
+                    e.provider.toLowerCase().indexOf(search) !== -1 ||
+                    e.domain.toLowerCase().indexOf(search) !== -1 ||
+                    (e.package && e.package.toLowerCase().indexOf(search) !== -1) ||
+                    (e.notes && e.notes.toLowerCase().indexOf(search) !== -1);
             });
         }
 
@@ -2429,6 +2651,10 @@
                     document.getElementById('price').value = autoPrice;
                     document.getElementById('renewalPeriod').value = 'شهري';
                 }
+            });
+
+            document.getElementById('selectAllCheckbox').addEventListener('change', function() {
+                window.toggleSelectAllVisible(this.checked);
             });
 
             document.getElementById('modalOverlay').addEventListener('click', function(e) {
